@@ -91,6 +91,7 @@ makeConf() {
 
   environment.shellAliases = {
     rebuild = "sudo nixos-rebuild switch";
+    upgrade = "sudo nixos-rebuild switch --upgrade";
   };
 
   environment.systemPackages = with pkgs; [
