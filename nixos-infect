@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # More info at: https://github.com/elitak/nixos-infect
 
 set -ex -o pipefail
@@ -45,7 +44,7 @@ makeConf() {
     experimental-features = "nix-command flakes";
     # Deduplicate and optimize nix store
     auto-optimise-store = true;
-    trusted-users = [ "root" "dev" ];
+    trusted-users = [ "root" "admin" "dev" ];
   };
 
   boot.tmp.cleanOnBoot = true;
@@ -100,6 +99,10 @@ makeConf() {
     git
     zip
     unzip
+    wget
+    file
+    htop
+    jq
   ];
   services.openssh.enable = true;
   services.tailscale.enable = true;
@@ -464,6 +467,4 @@ prepareEnv
 makeConf
 infect
 
-if [[ -z "$NO_REBOOT" ]]; then
-	reboot
-fi
+reboot
