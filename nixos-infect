@@ -35,7 +35,7 @@ makeConf() {
     experimental-features = "nix-command flakes";
     # Deduplicate and optimize nix store
     auto-optimise-store = true;
-    trusted-users = [ "root" "admin" "dev" ];
+    trusted-users = [ "root" "admin" "app" ];
   };
 
   boot.tmp.cleanOnBoot = true;
@@ -55,10 +55,10 @@ makeConf() {
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH+Pn4eeMouj+BUj3ynUYzjvpxeepJC8GU3RFTE+eOch hetzner_lambda"
     ];
   };
-  users.extraUsers.dev = {
+  users.extraUsers.app = {
     isNormalUser = true;
     createHome = true;
-    home = "/home/dev";
+    home = "/home/app";
     uid = 1001;
     group = "users";
     openssh.authorizedKeys.keys = [
