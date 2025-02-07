@@ -25,15 +25,16 @@ makeConf() {
 
 	[[ -n "$doNetConf" ]] && network_import="./networking.nix # generated at runtime by nixos-infect"
 	cat >/etc/nixos/configuration.nix <<EOF
-{ config, pkgs, ... }: {
+{ config, lib, pkgs, ... }:
+
+{
   imports = [
     ./hardware-configuration.nix
     $network_import
   ];
+
   nix.settings = {
-    # Enable flakes and new 'nix' command
     experimental-features = "nix-command flakes";
-    # Deduplicate and optimize nix store
     auto-optimise-store = true;
     trusted-users = [ "root" "admin" "app" ];
   };
@@ -41,10 +42,10 @@ makeConf() {
   boot.tmp.cleanOnBoot = true;
 
   networking.hostName = "$(hostname -s)";
-  networking.domain = "$(hostname -d)";
+  networking.domain = "";
   time.timeZone = "America/Argentina/Buenos_Aires";
 
-  users.extraUsers.admin = {
+  users.users.admin = {
     isNormalUser = true;
     createHome = true;
     home = "/home/admin";
@@ -55,9 +56,10 @@ makeConf() {
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH+Pn4eeMouj+BUj3ynUYzjvpxeepJC8GU3RFTE+eOch hetzner_lambda"
     ];
   };
-  users.extraUsers.app = {
+  users.users.app = {
     isNormalUser = true;
     createHome = true;
+    linger = true;
     home = "/home/app";
     uid = 1001;
     group = "users";
@@ -92,15 +94,23 @@ makeConf() {
     unzip
     wget
     file
-    htop
     jq
+    htop
+    neofetch
   ];
-  services.openssh.enable = true;
+  
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      AllowAgentForwarding = "no";
+      AllowTcpForwarding = "no";
+      PubkeyAuthentication = "yes";
+    };
+  };
   services.tailscale.enable = true;
 
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  networking.firewall.enable = false; # Preferably, use provider's FW
   system.stateVersion = "24.11";
 }
 EOF
