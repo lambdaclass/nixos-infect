@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # More info at: https://github.com/elitak/nixos-infect
 
 set -ex -o pipefail
@@ -22,40 +21,29 @@ makeConf() {
 
 	# NB <<"EOF" quotes / $ ` in heredocs, <<EOF does not
 	mkdir -p /etc/nixos
-	# Prevent grep for sending error code 1 (and halting execution) when no lines are selected : https://www.unix.com/man-page/posix/1P/grep
-	local IFS=$'\n'
-	for trypath in /root/.ssh/authorized_keys /home/$SUDO_USER/.ssh/authorized_keys $HOME/.ssh/authorized_keys; do
-		[[ -r "$trypath" ]] &&
-			keys=$(sed -E 's/^.*((ssh|ecdsa)-[^[:space:]]+)[[:space:]]+([^[:space:]]+)([[:space:]]*.*)$/\1 \3\4/' "$trypath") &&
-			[[ ! -z "$keys" ]] &&
-			break
-	done
 	local network_import=""
 
 	[[ -n "$doNetConf" ]] && network_import="./networking.nix # generated at runtime by nixos-infect"
 	cat >/etc/nixos/configuration.nix <<EOF
-{ config, pkgs, ... }: {
+{ config, lib, pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
     $network_import
-    $NIXOS_IMPORT
   ];
+
   nix.settings = {
-    # Enable flakes and new 'nix' command
     experimental-features = "nix-command flakes";
-    # Deduplicate and optimize nix store
     auto-optimise-store = true;
-    trusted-users = [ "root" "dev" ];
+    trusted-users = [ "root" "admin" "app" ];
   };
 
   boot.tmp.cleanOnBoot = true;
-  zramSwap.enable = ${zramswap};
 
   networking.hostName = "$(hostname -s)";
-  networking.domain = "$(hostname -d)";
+  networking.domain = "";
   time.timeZone = "America/Argentina/Buenos_Aires";
 
-  users.extraUsers.admin = {
+  users.users.admin = {
     isNormalUser = true;
     createHome = true;
     home = "/home/admin";
@@ -66,10 +54,11 @@ makeConf() {
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH+Pn4eeMouj+BUj3ynUYzjvpxeepJC8GU3RFTE+eOch hetzner_lambda"
     ];
   };
-  users.extraUsers.dev = {
+  users.users.app = {
     isNormalUser = true;
     createHome = true;
-    home = "/home/dev";
+    linger = true;
+    home = "/home/app";
     uid = 1001;
     group = "users";
     openssh.authorizedKeys.keys = [
@@ -91,6 +80,7 @@ makeConf() {
 
   environment.shellAliases = {
     rebuild = "sudo nixos-rebuild switch";
+    upgrade = "sudo nixos-rebuild switch --upgrade";
   };
 
   environment.systemPackages = with pkgs; [
@@ -100,14 +90,26 @@ makeConf() {
     git
     zip
     unzip
+    wget
+    file
+    jq
+    htop
+    neofetch
   ];
-  services.openssh.enable = true;
+  
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      AllowAgentForwarding = "no";
+      AllowTcpForwarding = "no";
+      PubkeyAuthentication = "yes";
+    };
+  };
   services.tailscale.enable = true;
 
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  networking.firewall.enable = false; # Preferably, use provider's FW
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.11";
 }
 EOF
 
@@ -238,33 +240,6 @@ EOF
   '';
 }
 EOF
-}
-
-checkExistingSwap() {
-	SWAPSHOW=$(swapon --show --noheadings --raw)
-	zramswap=true
-	swapcfg=""
-	if [[ -n "$SWAPSHOW" ]]; then
-		SWAP_DEVICE="${SWAPSHOW%% *}"
-		if [[ "$SWAP_DEVICE" == "/dev/"* ]]; then
-			zramswap=false
-			swapcfg="swapDevices = [ { device = \"${SWAP_DEVICE}\"; } ];"
-			NO_SWAP=true
-		fi
-	fi
-}
-
-makeSwap() {
-	swapFile=$(mktemp /tmp/nixos-infect.XXXXX.swp)
-	dd if=/dev/zero "of=$swapFile" bs=1M count=$((1 * 1024))
-	chmod 0600 "$swapFile"
-	mkswap "$swapFile"
-	swapon -v "$swapFile"
-}
-
-removeSwap() {
-	swapoff -a
-	rm -vf /tmp/nixos-infect.*.swp
 }
 
 isX86_64() {
@@ -488,16 +463,7 @@ fi
 
 checkEnv
 prepareEnv
-checkExistingSwap
-if [[ -z "$NO_SWAP" ]]; then
-	makeSwap # smallest (512MB) droplet needs extra memory!
-fi
 makeConf
 infect
-if [[ -z "$NO_SWAP" ]]; then
-	removeSwap
-fi
 
-if [[ -z "$NO_REBOOT" ]]; then
-	reboot
-fi
+reboot
