@@ -1680,7 +1680,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(eth_db_chaindata_disk_read{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}[1m])",
+          "expr": "rate(eth_db_chaindata_disk_read{instance=~\"$IP(:[0-9]+)?\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1694,7 +1694,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(eth_db_chaindata_disk_write{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}[1m])",
+          "expr": "rate(eth_db_chaindata_disk_write{instance=~\"$IP(:[0-9]+)?\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1708,7 +1708,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(eth_db_chaindata_ancient_read{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}[1m])",
+          "expr": "rate(eth_db_chaindata_ancient_read{instance=~\"$IP(:[0-9]+)?\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1722,7 +1722,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "rate(eth_db_chaindata_ancient_write{instance=~\"\", job=~\"$job\"}[1m])",
+          "expr": "rate(eth_db_chaindata_ancient_write{instance=~\"$IP(:[0-9]+)?\"}[1m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1822,7 +1822,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "eth_db_chaindata_disk_read{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}",
+          "expr": "eth_db_chaindata_disk_read{instance=~\"$IP(:[0-9]+)?\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1836,7 +1836,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "eth_db_chaindata_disk_write{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}",
+          "expr": "eth_db_chaindata_disk_write{instance=~\"$IP(:[0-9]+)?\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1850,7 +1850,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "eth_db_chaindata_ancient_read{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}",
+          "expr": "eth_db_chaindata_ancient_read{instance=~\"$IP(:[0-9]+)?\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1864,7 +1864,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "eth_db_chaindata_ancient_write{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}",
+          "expr": "eth_db_chaindata_ancient_write{instance=~\"$IP(:[0-9]+)?\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1964,7 +1964,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "eth_db_chaindata_disk_size{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}",
+          "expr": "eth_db_chaindata_disk_size{instance=~\"$IP(:[0-9]+)?\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1978,7 +1978,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "eth_db_chaindata_ancient_size{instance=~\"$IP(:[0-9]+)?\", job=~\"$job\"}",
+          "expr": "eth_db_chaindata_ancient_size{instance=~\"$IP(:[0-9]+)?\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
