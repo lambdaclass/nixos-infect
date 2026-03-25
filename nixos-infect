@@ -46,18 +46,20 @@ EOF
 
   [[ -n "$doNetConf" ]] && network_import="./networking.nix # generated at runtime by nixos-infect"
   cat > /etc/nixos/configuration.nix << EOF
-{ ... }: {
+let
+  unstable = import <nixos-unstable> { config = {}; overlays = []; };
+
+in { config, lib, pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
     $network_import
     $NIXOS_IMPORT
   ];
+
   nix.settings = {
-    # Enable flakes and new 'nix' command
     experimental-features = "nix-command flakes";
-    # Deduplicate and optimize nix store
     auto-optimise-store = true;
-    trusted-users = [ "root" "dev" ];
+    trusted-users = [ "root" "admin" "app" ];
   };
 
   # Workaround for https://github.com/NixOS/nix/issues/8502
@@ -70,7 +72,7 @@ EOF
   networking.domain = "$(hostname -d)";
   time.timeZone = "America/Argentina/Buenos_Aires";
 
-  users.extraUsers.admin = {
+  users.users.admin = {
     isNormalUser = true;
     createHome = true;
     home = "/home/admin";
@@ -81,10 +83,11 @@ EOF
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH+Pn4eeMouj+BUj3ynUYzjvpxeepJC8GU3RFTE+eOch hetzner_lambda"
     ];
   };
-  users.extraUsers.dev = {
+  users.users.app = {
     isNormalUser = true;
     createHome = true;
-    home = "/home/dev";
+    linger = true;
+    home = "/home/app";
     uid = 1001;
     group = "users";
     openssh.authorizedKeys.keys = [
@@ -92,6 +95,7 @@ EOF
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH+Pn4eeMouj+BUj3ynUYzjvpxeepJC8GU3RFTE+eOch hetzner_lambda"
     ];
   };
+
   security.sudo.extraRules = [
     {
       users = [ "admin" ];
@@ -106,6 +110,7 @@ EOF
 
   environment.shellAliases = {
     rebuild = "sudo nixos-rebuild switch";
+    upgrade = "sudo nix-channel --update && sudo nixos-rebuild switch --upgrade";
   };
 
   environment.systemPackages = with pkgs; [
@@ -115,13 +120,37 @@ EOF
     git
     zip
     unzip
+    wget
+    file
+    openssl
+    jq
+    htop
+    neofetch
   ];
-  services.openssh.enable = true;
-  services.tailscale.enable = true;
 
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  networking.firewall.enable = false; # Preferably, use provider's FW
+  networking.firewall = {
+    enable = true;
+    trustedInterfaces = [ "tailscale0" ];
+    interfaces.default.allowedTCPPorts = [ 22 ];
+    interfaces.default.allowedUDPPorts = [ 22 ];
+  };
+
+  services.openssh = {
+    enable = true;
+    openFirewall = false;
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      AllowAgentForwarding = "no";
+      AllowTcpForwarding = "no";
+      PubkeyAuthentication = "yes";
+    };
+  };
+  services.tailscale = {
+    enable = true;
+    package = unstable.tailscale;
+  };
+
   system.stateVersion = "25.11";
   $kernel_params
 }
@@ -442,6 +471,7 @@ infect() {
   [[ -z "$NIX_CHANNEL" ]] && NIX_CHANNEL="nixos-25.11"
   nix-channel --remove nixpkgs
   nix-channel --add "https://nixos.org/channels/$NIX_CHANNEL" nixos
+  nix-channel --add "https://nixos.org/channels/nixos-unstable" nixos-unstable
   nix-channel --update
 
   if [[ $NIXOS_CONFIG = http* ]]
