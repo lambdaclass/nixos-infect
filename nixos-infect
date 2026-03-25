@@ -66,7 +66,6 @@ in { config, lib, pkgs, ... }: {
   services.logrotate.checkConfig = false;
 
   boot.tmp.cleanOnBoot = true;
-  zramSwap.enable = ${zramswap};
 
   networking.hostName = "$(hostname -s)";
   networking.domain = "$(hostname -d)";
@@ -203,7 +202,6 @@ $bootcfg
   boot.initrd.availableKernelModules = [ ${availableKernelModules[@]} ];
   boot.initrd.kernelModules = [ "nvme" ];
   fileSystems."/" = { device = "$rootfsdev"; fsType = "$rootfstype"; };
-  $swapcfg
 }
 EOF
 
@@ -299,33 +297,6 @@ EOF
   '';
 }
 EOF
-}
-
-checkExistingSwap() {
-	SWAPSHOW=$(swapon --show --noheadings --raw)
-	zramswap=true
-	swapcfg=""
-	if [[ -n "$SWAPSHOW" ]]; then
-		SWAP_DEVICE="${SWAPSHOW%% *}"
-		if [[ "$SWAP_DEVICE" == "/dev/"* ]]; then
-			zramswap=false
-			swapcfg="swapDevices = [ { device = \"${SWAP_DEVICE}\"; } ];"
-			NO_SWAP=true
-		fi
-	fi
-}
-
-makeSwap() {
-	swapFile=$(mktemp /tmp/nixos-infect.XXXXX.swp)
-	dd if=/dev/zero "of=$swapFile" bs=1M count=$((1 * 1024))
-	chmod 0600 "$swapFile"
-	mkswap "$swapFile"
-	swapon -v "$swapFile"
-}
-
-removeSwap() {
-	swapoff -a
-	rm -vf /tmp/nixos-infect.*.swp
 }
 
 isX86_64() {
@@ -530,16 +501,9 @@ fi
 
 checkEnv
 prepareEnv
-checkExistingSwap
-if [[ -z "$NO_SWAP" ]]; then
-	makeSwap # smallest (512MB) droplet needs extra memory!
-fi
 makeConf
 if [[ -z "$NO_INFECT" ]]; then
     infect
-fi
-if [[ -z "$NO_SWAP" ]]; then
-	removeSwap
 fi
 
 if [[ -z "$NO_REBOOT" ]]; then
