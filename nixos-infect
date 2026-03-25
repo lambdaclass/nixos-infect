@@ -122,7 +122,7 @@ EOF
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   networking.firewall.enable = false; # Preferably, use provider's FW
-  system.stateVersion = "23.11";
+  system.stateVersion = "25.11";
   $kernel_params
 }
 EOF
@@ -433,7 +433,11 @@ infect() {
 	#addgroup nixbld -g 30000 || true
 	#for i in {1..10}; do adduser -DH -G nixbld nixbld$i || true; done
 
-	curl -L https://nixos.org/nix/install | sh -s -- --no-channel-add
+	NIX_INSTALL_URL="${NIX_INSTALL_URL:-https://nixos.org/nix/install}"
+	curl -L "${NIX_INSTALL_URL}" | sh -s -- --no-channel-add
+
+	# shellcheck disable=SC1090
+	source ~/.nix-profile/etc/profile.d/nix.sh
 
   [[ -z "$NIX_CHANNEL" ]] && NIX_CHANNEL="nixos-25.11"
   nix-channel --remove nixpkgs
@@ -446,15 +450,10 @@ infect() {
     unset NIXOS_CONFIG
   fi
 
-	if [[ $NIXOS_CONFIG = http* ]]; then
-		curl $NIXOS_CONFIG -o /etc/nixos/configuration.nix
-		unset NIXOS_CONFIG
-	fi
-
 	export NIXOS_CONFIG="${NIXOS_CONFIG:-/etc/nixos/configuration.nix}"
 
 	nix-env --set \
-		-I nixpkgs=$HOME/.nix-defexpr/channels/nixos \
+		-I nixpkgs=$(realpath $HOME/.nix-defexpr/channels/nixos) \
 		-f '<nixpkgs/nixos>' \
 		-p /nix/var/nix/profiles/system \
 		-A system
@@ -471,6 +470,13 @@ infect() {
 		echo "Setting label of $rootfsdev to $newrootfslabel"
 		e2label "$rootfsdev" "$newrootfslabel"
 	fi
+
+	# Stage the Nix coup d'état
+	touch /etc/NIXOS
+	echo etc/nixos                  >> /etc/NIXOS_LUSTRATE
+	echo etc/resolv.conf            >> /etc/NIXOS_LUSTRATE
+	echo root/.nix-defexpr/channels >> /etc/NIXOS_LUSTRATE
+	(cd / && ls etc/ssh/ssh_host_*_key* || true) >> /etc/NIXOS_LUSTRATE
 
   if isEFI; then
     rm -rf $bootFs.bak

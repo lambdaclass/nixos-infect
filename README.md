@@ -60,7 +60,7 @@ and most importantly, simply didn't work for me!
 
 4) run the script with:
 ```
-  curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-24.05 bash -x
+  curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-25.11 bash -x
 ```
 
 *NB*: This script wipes out the targeted host's root filesystem when it runs to completion.
@@ -79,7 +79,7 @@ and supply to it the following example yaml stanzas:
 #cloud-config
 
 runcmd:
-  - curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=digitalocean NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log
+  - curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | PROVIDER=digitalocean NIX_CHANNEL=nixos-25.11 bash 2>&1 | tee /tmp/infect.log
 ```
 
 #### Potential tweaks:
@@ -97,7 +97,7 @@ write_files:
       environment.systemPackages = with pkgs; [ vim ];
     }
 runcmd:
-  - curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=digitalocean NIXOS_IMPORT=./host.nix NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log
+  - curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | PROVIDER=digitalocean NIXOS_IMPORT=./host.nix NIX_CHANNEL=nixos-25.11 bash 2>&1 | tee /tmp/infect.log
 ```
 
 
@@ -139,7 +139,7 @@ To install NixOS on an already-provisioned server, execute the following command
 ```bash
 #!/bin/sh
 
-curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-24.05 bash
+curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-25.11 bash
 ```
 > ⚠️ **Warning**
 >
@@ -151,7 +151,7 @@ curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect |
 Add the following code to the **Cloud Config** section on **Hetzner Cloud**
 ```yaml
 runcmd:
-  - curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=hetznercloud NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log
+  - curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | PROVIDER=hetznercloud NIX_CHANNEL=nixos-25.11 bash 2>&1 | tee /tmp/infect.log
 ```
 ## Important Notes
 Execution Halts on Errors: Any errors will stop the process to prevent further inconsistencies.
@@ -287,7 +287,7 @@ build time or using `ssh-copy-id` before running nixos-infect
 ```
 #!/bin/sh
 
-curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log
+curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-25.11 bash 2>&1 | tee /tmp/infect.log
 ```
 
 #### Tested on
@@ -315,7 +315,7 @@ Tested on vServer. The network configuration seems to be important so the same t
 ### ServArica
 Requires the same static network settings that Digital Ocean does.
 
-    curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=servarica NIX_CHANNEL=nixos-24.05 bash
+    curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | PROVIDER=servarica NIX_CHANNEL=nixos-25.11 bash
 
 #### Tested on
 |Distribution|       Name      | Status    | test date|
@@ -346,7 +346,7 @@ write_files:
       environment.systemPackages = with pkgs; [ tmux ];
     }
 runcmd:
-  - curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect |  NIXOS_IMPORT=./host.nix NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log
+  - curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect |  NIXOS_IMPORT=./host.nix NIX_CHANNEL=nixos-25.11 bash 2>&1 | tee /tmp/infect.log
 ```
 
 #### Tested on
@@ -362,7 +362,7 @@ and have a copy of the private key on your local box.
 
 On RackNerd's Ubuntu 20.04, there's no `curl` by default, so `wget -O-` needs to be used instead:
 ```command
-# wget -O- https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-24.05 bash -x
+# wget -O- https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-25.11 bash -x
 ```
 
 #### Tested on
@@ -377,9 +377,9 @@ Instead i replace `/tmp` on the code by `/var/tmp`
 
 ```command
 mkdir -p /var/tmp
-curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect > nixos-infect.sh
+curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect > nixos-infect.sh
 sed -i 's|/tmp|/var/tmp|g' nixos-infect.sh
-cat nixos-infect.sh | NIX_CHANNEL=nixos-23.05 bash -x
+cat nixos-infect.sh | NIX_CHANNEL=nixos-25.11 bash -x
 
 ### Servinga
 Servinga offers nixos images already, but only for systems with 4G of ram or higher.
@@ -389,7 +389,7 @@ I got nixos running on a 1G machine by starting a debian 11 instance and then us
 ### Layer7
 
 ```command
-# wget -O- https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=layer7 NIX_CHANNEL=nixos-23.05 bash -x
+# wget -O- https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | PROVIDER=layer7 NIX_CHANNEL=nixos-25.11 bash -x
 
 ### Self-hosted
 Self-hosted infrastructure
@@ -438,7 +438,7 @@ Just set an SSH-Key and run the Script.
 Aeza works with `doNetConf=y` parameter:
 
 ```command
-# curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-23.05 doNetConf=y bash -x
+# curl https://raw.githubusercontent.com/lambdaclass/nixos-infect/master/nixos-infect | NIX_CHANNEL=nixos-25.11 doNetConf=y bash -x
 ```
 
 #### Tested on
